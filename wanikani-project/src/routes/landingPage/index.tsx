@@ -27,16 +27,16 @@ function LandingPage() {
         className="space-y-3"
       >
         <div className="flex items-center space-x-3">
-          <RadioGroupItem value="Radical" id="radicals" />
+          <RadioGroupItem value="radical" id="radicals" />
           <Label htmlFor="option-one">Radicals</Label>
         </div>
         <div className="flex items-center space-x-3">
-          <RadioGroupItem value="Kanji" id="kanji" />
+          <RadioGroupItem value="kanji" id="kanji" />
           <Label htmlFor="kanji">Kanji</Label>
         </div>
         <div className="flex items-center space-x-3">
-          <RadioGroupItem value="Vocabulary" id="vocab" />
-          <Label htmlFor="vocab">Vocabulary</Label>
+          <RadioGroupItem value="vocabulary" id="vocab" />
+          <Label htmlFor="vocabulary">Vocabulary</Label>
         </div>
         <div className="flex items-center space-x-3">
           <RadioGroupItem value="Context Sentences" id="context" />
