@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-export const fetchLevelProgressions = async (quizType: "radical" | "kanji" | "vocabulary") => {
+export const fetchLevelProgressions = async (
+  quizType: "radical" | "kanji" | "vocabulary"
+) => {
   const response = await fetch("https://api.wanikani.com/v2/level_progressions", {
     method: "GET",
     headers: {
@@ -14,21 +16,64 @@ export const fetchLevelProgressions = async (quizType: "radical" | "kanji" | "vo
   }
   const json = await response.json();
   const totalCount = json.total_count;
-  const quizItems: Array<{ slug: string; image: string | null; level: number }> = [];
+  type RadicalItem = {
+    slug: string; 
+    characters: string; 
+    level: number;
+  };
+  type KanjiVocabItem = {
+    slug: string;
+    image: string | null;
+    meaning: string;
+    level: number;
+  };
+  const quizItems: Array<RadicalItem | KanjiVocabItem> = [];
   for (let level = 1; level <= totalCount; level++) {
-    const res = await fetch(`https://api.wanikani.com/v2/subjects?types=${quizType}&levels=${level}`, {
-    headers: {
-      Authorization: `Bearer ${import.meta.env.VITE_WANIKANI_API_KEY}`,
-      "Wanikani-Revision": import.meta.env.VITE_WANIKANI_REVISION
-    }
-    });
+    const res = await fetch(
+      `https://api.wanikani.com/v2/subjects?types=${quizType}&levels=${level}`,
+      {
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_WANIKANI_API_KEY}`,
+          "Wanikani-Revision": import.meta.env.VITE_WANIKANI_REVISION,
+        },
+      }
+    );
     const levelData = await res.json();
-    const items = levelData.data.map(
-    (item: { data: { slug: string; character_images: { url: string }[] } }) => {
-      const slug = item.data.slug;
-      const image = item.data.character_images?.[0]?.url || null;
-      return { slug, image, level };
+    // RADICAL WORKFLOW
+    if (quizType === "radical") {
+      const items: RadicalItem[] = levelData.data.map(
+        (item: {
+          data: {
+            slug: string;
+            characters: string;
+          };
+        }) => {
+          return {
+            slug: item.data.slug,
+            characters: item.data.characters,
+            level,
+          };
+        }
+      );
+      quizItems.push(...items);
+      continue;
     }
+    
+    // KANJI + VOCAB WORKFLOW
+    const items: KanjiVocabItem[] = levelData.data.map(
+      (item: {
+        data: {
+          slug: string;
+          character_images: { url: string }[];
+          meanings: { meaning: string; primary: boolean }[];
+        };
+      }) => {
+        const slug = item.data.slug;
+        const image = item.data.character_images?.[0]?.url || null;
+        const meaning =
+          item.data.meanings.find((m) => m.primary)?.meaning || slug;
+        return { slug, image, meaning, level };
+      }
     );
     quizItems.push(...items);
   }
